@@ -12,45 +12,43 @@ jobs:
 
       # Download and cache dependencies
       - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
+        keys:
+          - v1-dependencies-{{ checksum "package-lock.json" }}
           - v1-dependencies-
  
       # let's install npm
       - run: npm install --silent
 
       - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+        key: v1-dependencies-{{ checksum "package-lock.json" }}
+        paths:
+          - node_modules
 
   test:
     steps: 
       - run:
-        name: Build and push Docker image
+        name: Run tests
         command: |
-          echo 'test'
+          echo test
 
   package:
-    branches:
-      only:
-        - master
+    steps: 
+      - run:
+        name: Build package
+        command: |
+          echo package
 
   image:
-    branches:
-      only:
-        - master
     steps:
       - setup_remote_docker:
         docker_layer_caching: true
 
       - run:
-          name: Build and push Docker image
-          command: |
-            docker build -t salestracker/$IMAGE_NAME:$TAG .
-            echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
-            docker push salestracker/$IMAGE_NAME:$TAG
+        name: Build and push Docker image
+        command: |
+          docker build -t salestracker/$IMAGE_NAME:$TAG .
+          echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
+          docker push salestracker/$IMAGE_NAME:$TAG
 
   deploy:
     steps:
@@ -72,16 +70,21 @@ workflows:
   version: 2
   build-test-package-deploy:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              ignore:
+                - develop
       - test
       - package:
         requires:
           - test
-      - image
+      - image:
+        requires:
+          - package
       - deploy:
         requires:
-          - publish
+          - build
       - smoke-test:
-        requires:
-          - deploy
-          
+          requires:
+            - deploy
