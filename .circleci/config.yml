@@ -74,7 +74,14 @@ jobs:
             ssh -o StrictHostKeyChecking=no root@hello.dpunks.org "/bin/bash ./deploy_app.sh salestracker/$IMAGE_NAME:$TAG"
 
   smoke-test:
-    steps:
+    docker:
+      - image: circleci/node:12
+
+      steps:
+        - run:
+            name: Install Docker client
+            command: apk add docker-cli
+  
       - run: |
           docker run -it \
                      -e APP_HOST=$VM_IP \
