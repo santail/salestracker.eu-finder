@@ -26,10 +26,11 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
 
   test:
-    - run:
-      name: Build and push Docker image
-      command: |
-        echo 'test'
+    steps: 
+      - run:
+        name: Build and push Docker image
+        command: |
+          echo 'test'
 
   package:
     branches:
