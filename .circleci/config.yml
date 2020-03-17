@@ -71,7 +71,7 @@ jobs:
 
       - attach_workspace:
           at: .
-          
+
       - run:
           name: Build and push Docker image
           command: |
@@ -85,9 +85,9 @@ jobs:
 
     steps:
       - run:
-          name: Deploy app to Digital Ocean Server via Docker
-          command: |
-            ssh -o StrictHostKeyChecking=no root@hello.dpunks.org "/bin/bash ./deploy_app.sh salestracker/$IMAGE_NAME:$TAG"
+        name: Deploy app to Digital Ocean Server via Docker
+        command: |
+          ssh -o StrictHostKeyChecking=no $SALESTRACKER_USER@$SALESTRACKER_HOST "/bin/bash ./deploy_app.sh salestracker/$IMAGE_NAME:$TAG $IMAGE_NAME"
 
   smoke-test:
     docker:
