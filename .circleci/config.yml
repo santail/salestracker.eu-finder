@@ -77,17 +77,17 @@ jobs:
     docker:
       - image: circleci/node:12
 
-      steps:
-        - run:
-            name: Install Docker client
-            command: apk add docker-cli
-  
+    steps:
+      - run:
+          name: Install Docker client
+          command: apk add docker-cli
+
       - run: |
           docker run -it \
-                     -e APP_HOST=$VM_IP \
-                     -e APP_VERSION=$CIRCLE_SHA1 \
-                     $DOCKER_IMAGE:$CIRCLE_SHA1 \
-                     node test.js
+                    -e APP_HOST=$VM_IP \
+                    -e APP_VERSION=$CIRCLE_SHA1 \
+                    $DOCKER_IMAGE:$CIRCLE_SHA1 \
+                    node test.js
 
 workflows:
   version: 2
