@@ -1,17 +1,89 @@
-version: 2.1
-orbs:
-  node: circleci/node@1.1.6
+version: 2
+
+defaults: 
+  machine:
+    docker_layer_caching: true
+  environment:
+    - APP_VERSION: $CIRCLE_SHA1
+
 jobs:
-  build-and-test:
-    executor:
-      name: node/default
+  build:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:12
+
+    working_directory: ~/salestracker.eu-finder
     steps:
       - checkout
-      - node/with-cache:
-          steps:
-            - run: npm install
-            - run: npm test
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+ 
+      # let's install npm
+      - run: npm install --silent
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+  test:
+
+  package:
+    branches:
+      only:
+        - master
+
+  image:
+    branches:
+      only:
+        - master
+    steps:
+      - setup_remote_docker:
+        docker_layer_caching: true
+
+      - run:
+          name: Build and push Docker image
+          command: |
+            docker build -t salestracker/$IMAGE_NAME:$TAG .
+            echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
+            docker push salestracker/$IMAGE_NAME:$TAG
+
+  deploy:
+    steps:
+      - run:
+        name: Deploy app to Digital Ocean Server via Docker
+        command: |
+          ssh -o StrictHostKeyChecking=no root@hello.dpunks.org "/bin/bash ./deploy_app.sh salestracker/$IMAGE_NAME:$TAG"
+
+  smoke-test:
+    steps:
+      - run: |
+          docker run -it \
+                     -e APP_HOST=$VM_IP \
+                     -e APP_VERSION=$CIRCLE_SHA1 \
+                     $DOCKER_IMAGE:$CIRCLE_SHA1 \
+                     node test.js
+
 workflows:
-    build-and-test:
-      jobs:
-        - build-and-test
+  version: 2
+  build-test-package-deploy:
+    jobs:
+      - build
+      - test
+      - package:
+        requires:
+          - test
+      - image
+      - deploy:
+          requires:
+            - publish
+
+      - smoke-test:
+          requires:
+            - deploy
+          
