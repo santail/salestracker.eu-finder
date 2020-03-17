@@ -49,10 +49,6 @@ jobs:
       - image: circleci/node:12
 
     steps:
-      - run:
-          name: Install Docker client
-          command: sudo apt-get install docker-cli
-
       - setup_remote_docker
 
       - run:
@@ -77,10 +73,6 @@ jobs:
       - image: circleci/node:12
 
     steps:
-      - run:
-          name: Install Docker client
-          command: sudo apt-get install docker-cli
-
       - run: |
           docker run -it \
                     -e APP_HOST=$VM_IP \
