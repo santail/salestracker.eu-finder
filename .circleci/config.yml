@@ -6,11 +6,16 @@ jobs:
       # specify the version you desire here
       - image: circleci/node:12
 
-    working_directory: ~/salestracker.eu-finder
     steps:
       - checkout
 
       # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - repo-source-{{ .Branch }}-{{ .Revision }}
+            - repo-source-{{ .Branch }}-
+            - repo-source-
+
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "package-lock.json" }}
@@ -19,10 +24,22 @@ jobs:
       # let's install npm
       - run: npm install --silent
 
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
       - save_cache:
+          name: Save node_modules
           key: v1-dependencies-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
+
+      - save_cache:
+          name: Saving git sources
+          key: repo-source-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - .git
 
   test:
     docker:
@@ -52,6 +69,9 @@ jobs:
     steps:
       - setup_remote_docker
 
+      - attach_workspace:
+          at: .
+          
       - run:
           name: Build and push Docker image
           command: |
