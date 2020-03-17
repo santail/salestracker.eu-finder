@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+      "target": "es2017",
+      "module": "commonjs",
+      "sourceMap": true,
+      "outDir": "./build",
+      "strict": true,
+      "noImplicitAny": false,
+      "strictNullChecks": true,
+      "noImplicitThis": true,
+      "alwaysStrict": true,
+      "noUnusedParameters": false,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true,
+      "baseUrl": "./",
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "allowJs": true,
+      "esModuleInterop": true,
+      "types" : ["node", "lodash"]
+    },
+    "include": [
+        "lib/**/*.ts",
+        "src/**/*.ts"
+    ],
+    "exclude": [
+      "node_modules"
+    ]
+  }

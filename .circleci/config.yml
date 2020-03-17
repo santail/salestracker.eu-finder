@@ -1,0 +1,122 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:12
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - repo-source-{{ .Branch }}-{{ .Revision }}
+            - repo-source-{{ .Branch }}-
+            - repo-source-
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+            - v1-dependencies-
+ 
+      # let's install npm
+      - run: npm install --silent
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+      - save_cache:
+          name: Save node_modules
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+      - save_cache:
+          name: Saving git sources
+          key: repo-source-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - .git
+
+  test:
+    docker:
+      - image: circleci/node:12
+
+    steps: 
+      - run:
+          name: Run tests
+          command: |
+            echo test
+
+  package:
+    docker:
+      - image: circleci/node:12
+
+    steps: 
+      - run:
+          name: Build package
+          command: |
+            echo package
+
+  image:
+    docker:
+      - image: circleci/node:12
+
+    steps:
+      - setup_remote_docker
+
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Build and push Docker image
+          command: |
+            docker build -t salestracker/$IMAGE_NAME:$TAG .
+            echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USERNAME --password-stdin
+            docker push salestracker/$IMAGE_NAME:$TAG
+
+  deploy:
+    docker:
+      - image: circleci/node:12
+
+    steps:
+      - run:
+          name: Deploy app to Digital Ocean Server via Docker
+          command: |
+            ssh -o StrictHostKeyChecking=no $SALESTRACKER_USER@$SALESTRACKER_HOST "/bin/bash ./deploy_app.sh salestracker/$IMAGE_NAME:$TAG $IMAGE_NAME"
+
+  smoke-test:
+    docker:
+      - image: circleci/node:12
+
+    steps:
+      - run: |
+          docker run -it \
+                    -e APP_HOST=$VM_IP \
+                    -e APP_VERSION=$CIRCLE_SHA1 \
+                    $DOCKER_IMAGE:$CIRCLE_SHA1 \
+                    node test.js
+
+workflows:
+  version: 2
+  build-test-package-deploy:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - package:
+          requires:
+            - test
+      - image:
+          requires:
+            - package
+      - deploy:
+          requires:
+            - image
+      - smoke-test:
+          requires:
+            - deploy
