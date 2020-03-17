@@ -48,6 +48,7 @@ jobs:
     docker:
       - image: circleci/node:12
 
+    working_directory: ~/salestracker.eu-finder
     steps:
       - setup_remote_docker
 
@@ -55,7 +56,7 @@ jobs:
           name: Build and push Docker image
           command: |
             docker build -t salestracker/$IMAGE_NAME:$TAG .
-            echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
+            echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USERNAME --password-stdin
             docker push salestracker/$IMAGE_NAME:$TAG
 
   deploy:
