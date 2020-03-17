@@ -51,7 +51,7 @@ jobs:
     steps:
       - run:
           name: Install Docker client
-          command: apt-get install docker-cli
+          command: sudo apt-get install docker-cli
 
       - setup_remote_docker
 
@@ -79,7 +79,7 @@ jobs:
     steps:
       - run:
           name: Install Docker client
-          command: apt-get install docker-cli
+          command: sudo apt-get install docker-cli
 
       - run: |
           docker run -it \
