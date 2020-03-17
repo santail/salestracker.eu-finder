@@ -39,7 +39,14 @@ jobs:
             echo package
 
   image:
+    docker:
+      - image: circleci/node:12
+
     steps:
+      - run:
+          name: Install Docker client
+          command: apk add docker-cli
+
       - setup_remote_docker:
           docker_layer_caching: true
 
