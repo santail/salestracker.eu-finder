@@ -9,7 +9,7 @@
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register src/index.ts",
     "lint": "tslint {src,test}/**/*.ts",
-    "build": "tsc",
+    "build": "tsc --alwaysStrict",
     "start:prod": "pm2 start ./index.js"
   },
   "dependencies": {

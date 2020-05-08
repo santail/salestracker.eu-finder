@@ -1,8 +1,6 @@
-'use strict';
-
-const elasticsearch = require('elasticsearch');
-const kue = require('kue-scheduler');
-const mongojs = require('mongojs')
+import * as elasticsearch from 'elasticsearch';
+import scheduler from 'kue-scheduler';
+import mongojs from 'mongojs';
 
 
 class SessionFactory {
@@ -13,17 +11,23 @@ class SessionFactory {
 
   constructor() {
     this._db = mongojs(process.env.MONGODB_URI, [
-      "offers", "sites", "wishes"
+      'offers', 'sites', 'wishes'
     ]);
 
-    this._worker = kue.createQueue({
-      redis: process.env.REDIS_ADDR,
+    this._worker = scheduler.createQueue({
+      redis: {
+        host: process.env.REDIS_ADDR!!,
+        port: parseInt(process.env.REDIS_ADDR!!, 10)
+      },
       restore: true,
       worker: true
     });
 
-    this._scheduler = kue.createQueue({
-      redis: process.env.REDIS_ADDR,
+    this._scheduler = scheduler.createQueue({
+      redis: {
+        host: process.env.REDIS_ADDR!!,
+        port: parseInt(process.env.REDIS_ADDR!!, 10)
+      },
       restore: true,
       worker: false
     });
@@ -36,19 +40,19 @@ class SessionFactory {
 
   getDbConnection() {
     return this._db;
-  };
+  }
 
   getQueueConnection() {
     return this._worker;
-  };
+  }
 
   getSchedulerConnection() {
     return this._scheduler;
-  };
+  }
 
   getElasticsearchConnection() {
     return this._elastic;
-  };
+  }
 }
 
 export default new SessionFactory();
