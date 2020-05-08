@@ -109,7 +109,7 @@ jobs:
       - run:
           name: Deploy app to Digital Ocean Server via Docker
           command: |
-            ssh -o StrictHostKeyChecking=no $SALESTRACKER_USER@$SALESTRACKER_HOST "/bin/bash /usr/src/app/salestracker.eu/deploy_app.sh salestracker/$IMAGE_NAME:$TAG $IMAGE_NAME"
+            ssh -o StrictHostKeyChecking=no $SALESTRACKER_USER@$SALESTRACKER_HOST "/bin/bash export $(cat /usr/src/app/salestracker.eu/.env | grep -v '#' | awk '/=/ {print $1}') && /usr/src/app/salestracker.eu/deploy_app.sh salestracker/$IMAGE_NAME:$TAG $IMAGE_NAME"
 
   smoke-test:
     docker:
