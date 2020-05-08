@@ -20,7 +20,6 @@
       "types" : ["node", "lodash"]
     },
     "include": [
-        "lib/**/*.ts",
         "src/**/*.ts"
     ],
     "exclude": [
