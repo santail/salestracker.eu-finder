@@ -17,7 +17,7 @@ class SessionFactory {
     this._worker = scheduler.createQueue({
       redis: {
         host: process.env.REDIS_ADDR!!,
-        port: parseInt(process.env.REDIS_ADDR!!, 10)
+        port: parseInt(process.env.REDIS_PORT!!, 10)
       },
       restore: true,
       worker: true
@@ -26,7 +26,7 @@ class SessionFactory {
     this._scheduler = scheduler.createQueue({
       redis: {
         host: process.env.REDIS_ADDR!!,
-        port: parseInt(process.env.REDIS_ADDR!!, 10)
+        port: parseInt(process.env.REDIS_PORT!!, 10)
       },
       restore: true,
       worker: false
