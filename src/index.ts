@@ -1,21 +1,21 @@
-const _ = require('lodash');
-const mongojs = require('mongojs');
-const util = require('util');
+import _ from 'lodash';
+import mongojs from 'mongojs';
+import util from 'util';
 
-import LOG from "./services/Logger";
+import LOG from './services/Logger';
 import SessionFactory from './services/SessionFactory';
 
 
 const WISH_CHECK_PERIOD = process.env.WISH_CHECK_PERIOD ? parseInt(process.env.WISH_CHECK_PERIOD, 10) : 60 * 60 * 1000;
 const DEFAULT_LANGUAGE = 'est';
 
-const performSearch = function () {
+const performSearch = () => {
     const checkTime = new Date().getTime();
 
     SessionFactory.getDbConnection().wishes.findOne({
         $and: [{
             expires: {
-                "$gte": new Date(checkTime)
+                '$gte': new Date(checkTime)
             }
         }, {
             $or: [{
@@ -24,7 +24,7 @@ const performSearch = function () {
                 }
             }, {
                 reactivates: {
-                    "$lte": new Date(checkTime)
+                    '$lte': new Date(checkTime)
                 }
             }]
         }]
@@ -32,28 +32,28 @@ const performSearch = function () {
         if (err) {
             LOG.error(util.format('[ERROR] Checking wish failed', err));
         } else if (foundWish) {
-            if (!foundWish.locale) { // we use 'locale' property as 'language' is reserved for mongodb 
+            if (!foundWish.locale) { // we use 'locale' property as 'language' is reserved for mongodb
                 foundWish.locale = DEFAULT_LANGUAGE; // fallback to default language
             }
 
             foundWish.language = foundWish.locale;
             delete foundWish.locale;
 
-            let indexName = 'salestracker-' + foundWish.language;
-            
-            let criteria: any[] = [
+            const indexName = 'salestracker-' + foundWish.language;
+
+            const criteria: any[] = [
                 [{
-                    "match": {
-                        "title": foundWish.content
+                    'match': {
+                        'title': foundWish.content
                     }
                 }]
             ];
 
             if (foundWish.last_processed) {
                 criteria.push({
-                    "range": {
-                        "parsed": {
-                            "gt": new Date(foundWish.last_processed)
+                    'range': {
+                        'parsed': {
+                            'gt': new Date(foundWish.last_processed)
                         }
                     }
                 });
@@ -63,15 +63,15 @@ const performSearch = function () {
                 index: indexName,
                 type: 'offers',
                 body: {
-                    "query": {
-                        "bool": {
-                            "must": criteria
+                    'query': {
+                        'bool': {
+                            'must': criteria
                         }
                     }
                 }
-            }, (err, response) => {
-                if (err) {
-                    LOG.error(util.format('[ERROR] [%s] Offers search failed', foundWish.content, err));
+            }, (err2, response) => {
+                if (err2) {
+                    LOG.error(util.format('[ERROR] [%s] Offers search failed', foundWish.content, err2));
                 } else {
                     if (!response.hits.total) {
                         LOG.info(util.format('[OK] No offers containing %s found', foundWish.content, response.hits));
@@ -87,9 +87,9 @@ const performSearch = function () {
         } else {
             LOG.info(util.format('[OK] No unprocessed wishes found'));
 
-            setTimeout(function () {
+            setTimeout(() => {
                 performSearch();
-            }, 10000)
+            }, 10000);
         }
     });
 };
@@ -102,7 +102,7 @@ function _handleEmptyResult(wish, checkTime) {
         $set: { // TODO add flag with latest found offers create date
             reactivates: new Date(checkTime.getTime() + WISH_CHECK_PERIOD)
         }
-    }, function (err, updatedWish) {
+    }, (err, updatedWish) => {
         if (err) {
             // TODO Mark somehow wish that was not marked as processed
             LOG.error(util.format('[ERROR] [%s] Wish check time update failed', wish.content, err));
@@ -118,18 +118,18 @@ function _handleEmptyResult(wish, checkTime) {
     });
 }
 
-function _handleSearchResult(response, foundWish, checkTime) {
-    let offers = _.map(response.hits.hits, function (offer) {
+const _handleSearchResult = (response, foundWish, checkTime) => {
+    const offers = _.map(response.hits.hits, (offer) => {
         return offer._source;
     });
 
-    let latestProcessedOffer = _.maxBy(offers, function (offer) { // TODO probably move this sorting to elastic search query
+    const latestProcessedOffer = _.maxBy(offers, (offer) => { // TODO probably move this sorting to elastic search query
         return offer.parsed;
     });
 
-    let notification = {
+    const notification = {
         wish: foundWish,
-        offers: offers
+        offers
     };
 
     SessionFactory.getQueueConnection().create('sendNotification', notification)
@@ -138,7 +138,7 @@ function _handleSearchResult(response, foundWish, checkTime) {
         type: 'exponential'
     })
         .removeOnComplete(true)
-        .save(function (err) {
+        .save((err) => {
             if (err) {
                 LOG.error(util.format('[ERROR] Notification processing schedule failed', notification, err));
             }
@@ -153,7 +153,7 @@ function _handleSearchResult(response, foundWish, checkTime) {
             reactivates: new Date(checkTime.getTime() + WISH_CHECK_PERIOD),
             last_processed: new Date(latestProcessedOffer.parsed)
         }
-    }, function (err, updatedWish) {
+    }, (err, updatedWish) => {
         if (err) {
             // TODO Mark somehow wish that was not marked as processed
             LOG.error(util.format('[ERROR] [%s] Wish check time update failed', foundWish.content, err));
@@ -167,6 +167,6 @@ function _handleSearchResult(response, foundWish, checkTime) {
             performSearch();
         }
     });
-}
+};
 
 performSearch();
