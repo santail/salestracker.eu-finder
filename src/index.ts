@@ -1,3 +1,3 @@
-setInterval(function () {
-    console.log("Running ...");
+setInterval(() => {
+    console.log('Running ...');
 }, 10000);

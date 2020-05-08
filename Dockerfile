@@ -7,8 +7,11 @@ WORKDIR /usr/src/app
 
 COPY package.json package-lock.json /usr/src/app/
 
-RUN npm install
+RUN npm install --production
+RUN npm install pm2 -g
 
-COPY . /usr/src/app
+COPY ./dist /usr/src/app
 
-CMD ["npm", "start"]
+RUN ls -al -R
+
+CMD [ "npm", "start:prod" ]

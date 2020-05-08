@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  build:
+  checkout:
     docker:
       # specify the version you desire here
       - image: circleci/node:12
@@ -41,6 +41,16 @@ jobs:
           paths:
             - .git
 
+  lint:
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Lint TypeScript code
+          command: |
+            npm run lint
+
   test:
     docker:
       - image: circleci/node:12
@@ -51,15 +61,24 @@ jobs:
           command: |
             echo test
 
-  package:
+  build:
     docker:
       - image: circleci/node:12
 
     steps: 
+
+      - attach_workspace:
+          at: .
+
       - run:
           name: Build package
           command: |
-            echo package
+            npm run build
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
   image:
     docker:
@@ -100,16 +119,19 @@ workflows:
   version: 2
   deploy-production:
     jobs:
-      - build
+      - checkout
+      - lint:
+        requires:
+          - checkout
       - test:
           requires:
-            - build
-      - package:
+            - lint
+      - build:
           requires:
             - test
       - image:
           requires:
-            - package
+            - build
       - deploy:
           requires:
             - image
