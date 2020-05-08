@@ -42,6 +42,10 @@ jobs:
             - .git
 
   lint:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:12
+
     steps:
       - attach_workspace:
           at: .
@@ -121,8 +125,8 @@ workflows:
     jobs:
       - checkout
       - lint:
-        requires:
-          - checkout
+          requires:
+            - checkout
       - test:
           requires:
             - lint
