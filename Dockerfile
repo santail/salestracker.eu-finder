@@ -17,6 +17,4 @@ ENV PM2_SECRET_KEY erah4c4xr4hrh8c
 
 COPY ./dist /usr/src/app
 
-RUN ls -al -R
-
 CMD ["pm2-runtime", "index.js"]
