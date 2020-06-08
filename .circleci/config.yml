@@ -134,9 +134,11 @@ workflows:
           requires:
             - test
       - image:
+          context: salestracker.eu-production
           requires:
             - build
       - deploy:
+          context: salestracker.eu-production
           requires:
             - image
       - smoke-test:
