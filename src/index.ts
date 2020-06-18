@@ -132,7 +132,7 @@ const _handleSearchResult = (response, foundWish, checkTime) => {
         offers
     };
 
-    SessionFactory.getQueueConnection().create('sendNotification', notification)
+    SessionFactory.getQueueConnection().create('send_notification', notification)
         .attempts(3).backoff({
         delay: 60 * 1000,
         type: 'exponential'
